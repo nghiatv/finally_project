@@ -12,7 +12,7 @@
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('admin/login');
 });
 
 
@@ -25,7 +25,7 @@ Route::group(['prefix' => 'api'], function(){
 Route::group(['prefix' => 'client', 'before' => 'jwt.auth','middleware' => ['ability:client,create-posts']],function(){
 
 });
-Route::group(['prefix'=>'admin','middleware'=> ['ability:admin,create-users|edit-users|delete-users']],function(){
+Route::group(['prefix'=>'admin2','middleware'=> ['ability:admin,create-users|edit-users|delete-users']],function(){
     Route::get('users','JwtAuthenticateController@getAuthenticateUser');
 //    lấy toàn bộ danh sách user
     Route::get('all-users','JwtAuthenticateController@allUsers');
@@ -48,3 +48,23 @@ Route::group(['prefix'=>'admin','middleware'=> ['ability:admin,create-users|edit
 
 //authentication route
 //Route::post('authenticate','JwtAuthenticateController@authenticate');
+
+
+//Admin Login
+
+Route::group(['prefix' => 'admin'],function(){
+    // Xac thuc trang Admin
+    Route::get('/', 'AdminController@getLogin');
+    Route::get('login', 'AdminController@getLogin');
+    Route::post('login', 'AdminController@postLogin');
+    Route::get('logout', 'AdminController@getLogout');
+
+// Dang ki trang Admin
+    Route::get('register', 'AdminController@getRegister');
+    Route::post('register', 'AdminController@postRegister');
+
+//    Dashboard
+    Route::get('dashboard', function(){
+       return view('admin/index');
+    });
+} );
