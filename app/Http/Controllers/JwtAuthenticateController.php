@@ -18,15 +18,25 @@
 //
 
 namespace App\Http\Controllers;
+
 use App\Permission;
+use App\POheader;
 use App\Role;
 use App\User;
+use App\Store;
+use App\Shipment;
+//use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\MessageBag;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 use JWTAuth;
-use Tymon\JWTAuth\Exceptions\JWTException;
+//use Tymon\JWTAuth\JWTAuth;
+use Tymon\JWTAuth\Exceptions;
 use Illuminate\Support\Facades\Hash;
 use Log;
 
@@ -36,19 +46,17 @@ class JwtAuthenticateController extends Controller
 //    public  function __construct(){
 //        $this->middleware('jwt.auth', ['except' => ['authenticate']]);
 //    }
-    public function index(){
-        $users = User::all();
-        return $users;
-    }
-    public function admin(){
-        return response()->json(['auth' => Auth::user(), 'users' => User::all()]);
-    }
+
+
     public function authenticate(Request $request)
     {
+//        return 1;
         $credentials = $request->only('email', 'password');
+        $id = User::where('email','=',$credentials['email'])->get();
+        $id = $id[0]->store_id;
         try {
             // verify the credentials and create a token for the user
-            if (! $token = JWTAuth::attempt($credentials)) {
+            if (!$token = JWTAuth::attempt($credentials)) {
                 return response()->json(['error' => 'invalid_credentials'], 401);
             }
         } catch (JWTException $e) {
@@ -57,113 +65,241 @@ class JwtAuthenticateController extends Controller
         }
 
         // if no errors are encountered we can return a JWT
-        return response()->json(compact('token'));
+        return response()->json([compact('token'),compact('id')]);
     }
 
     /**
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getAuthenticateUser(){
-        try{
-            if( ! $user = JWTAuth::parseToken()->authenticate()){
-                return response()->json(['user_not_found'],404);
+    public function getAuthenticateUser()
+    {
+        try {
+            if (!$user = JWTAuth::parseToken()->authenticate()) {
+                return response()->json(['Không tồn tại người dùng trong hệ thống'], 404);
             }
-        } catch (Tymon\JWTAuth\Exceptions\TokenExpiredException $e){
+        } catch (Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
             return response()->json(['token_expired'], $e->getStatusCode());
-        } catch (Tymon\JWTAuth\Exceptions\TokenInvalidException $e){
+        } catch (Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
             return response()->json(['token_invalid'], $e->getStatusCode());
-        } catch (Tymon\JWTAuth\Exceptions\JWTException $e){
+        } catch (Tymon\JWTAuth\Exceptions\JWTException $e) {
             return response()->json(['token_absent'], $e->getStatusCode());
         }
         return response()->json(compact('user'));
     }
-    public function register(Request $request){
-        $newuser = $request->all();
-        $password = Hash::make($request->input('password'));
-        $newuser['password'] = $password;
-        $newuser = User::create($newuser);
-        $role = Role::where('name','=',$request->input('role'))->first();
-        $newuser->attachRole($role->id);
-        return $newuser;
-    }
-    public function createRole(Request $request){
-        $role = new Role();
-        $check_role = Role::where('name','=',$request->input('name'))->first();
-       if($check_role){
-           return response()->json([
-               "status_code" => 400,
-               "status_name" => "Bad Request",
-               "message" => "Duplicate role"
-           ]);
-       }else{
-           $role->name = $request->input('name');
-           $role->display_name = $request->input('display_name');
-           $role->description = $request->input('description');
-           $role->save();
-           return response()->json([
-               "status_code" => 200,
-               "status_name" => "OK",
-               "message" => "Created"
-           ]);
-       }
 
-    }
-    public function updateRole(Request $request){
+    public function sendPO(Request $request)
+    {
+//        dd($this->verifyPO($request));
+//        return response()->json( $this->verifyPO($request));
+        if ($this->verifyPO($request) !== true ) {
+            return response()->json(
+                $this->verifyPO($request)
+            );
+        } else {
 
-        $role = Role::where('name','=',$request->input('name'))->first();
-//        return $role;
-        if(!$role){
-            return response()->json([
-                "status_code" => 404,
-                "status_name" => "Not Found",
-                "message" => "Role Not Found"
-            ]);
-        }else{
-            $role->name = $request->input('new_name');
-            $role->display_name = $request->input('display_name');
-            $role->description = $request->input('description');
-            $role->save();
-            return $role;
+            $data = $request->input('data');
+            $included = $request->input('included');
+            $ship_id = null;
+            $customer_id = null;
+            // insert new attribute to database
+            foreach ($included as $item) {
+
+                //insert Shipmethod if not exist
+                if ($item['type'] == 'ship_method') {
+                    $attributes = $item['attributes'];
+                    $name = str_slug($attributes['name'], '-');
+                    $display_name = $attributes['name'];
+//                    var_dump($attributes);
+                    $description = $attributes['description'];
+                    $v = DB::table('shipments')->where('name', $name)->where('store_id', $request->input('sender_id'))->first();
+                    if (!$v) {
+                        try {
+                            DB::table('shipments')->insert([
+                                'store_id' => $request->input('sender_id'),
+                                'name' => $name,
+                                'display_name' => $display_name,
+                                'description' => $description,
+                                'created_at' => date('Y-m-d H:i:s', time()),
+                                'updated_at' => date('Y-m-d H:i:s', time())
+                            ]);
+                        } catch (\Exception $e) {
+                            return response()->json($e->getMessage());
+                        }
+                    }
+                    $ship_id = DB::table('shipments')->where('name', $name)->where('store_id', $request->input('sender_id'))->first()->id;
+//                    return $name.' '.$display_name.' '.$description;
+                }
+                //insert Product if not exist
+                if ($item['type'] == 'product') {
+                    $attributes = $item['attributes'];
+                    $product_name = $attributes['name'];
+                    if ($attributes['code']) {
+                        $product_code = $attributes['code'];
+                    } else {
+                        $product_code = str_slug($attributes['name'], "-");
+                    }
+                    $size = $attributes['size'];
+                    $style = $attributes['style'];
+                    $v = DB::table('products')->where('product_code', $product_code)->where('store_id', $request->input('sender_id'))->first();
+                    if (!$v) {
+                        try {
+                            DB::table('products')->insert([
+                                'store_id' => $request->input('sender_id'),
+                                'product_name' => $product_name,
+                                'product_code' => $product_code,
+                                'size' => $size,
+                                'style' => $style,
+                                'created_at' => \Carbon\Carbon::now(),
+                                'updated_at' => \Carbon\Carbon::now()
+                            ]);
+                        } catch (\Exception $e) {
+                            return response()->json($e->getMessage());
+                        }
+                    }
+
+                }
+                //insert Customer if not exist
+
+                if ($item['type'] == "customer") {
+                    $attributes = $item['attributes'];
+                    $name = $attributes['name'];
+                    $email = $attributes['email'];
+                    $address = $attributes['address'];
+                    $phone = $attributes['phone'];
+                    $description = $attributes['description'];
+                    $v = DB::table('customers')->where('phone', $phone)->where('store_id', $request->input('sender_id'))->first();
+                    if (!$v) {
+                        try {
+                            DB::table('customers')->insert([
+                                'store_id' => $request->input('sender_id'),
+                                'name' => $name,
+                                'email' => $email,
+                                'address' => $address,
+                                'phone' => $phone,
+                                'description' => $description,
+                                'created_at' => \Carbon\Carbon::now(),
+                                'updated_at' => \Carbon\Carbon::now()
+                            ]);
+                        } catch (\Exception $e) {
+                            return response()->json($e->getMessage());
+                        }
+                    }
+                    $customer_id = DB::table('customers')->where('phone', $phone)->where('store_id', $request->input('sender_id'))->first()->id;
+//                    dd($customer_id);
+                }
+
+            }
+
+            //insert PO header
+            try {
+                DB::table('purchase_order_headers')->insert([
+                    'store_id' => $request->input('sender_id'),
+                    'purchase_order_name' => $data[0]['purchase_order_name'],
+                    'control_number' => $request->input('control_transaction'),
+                    'seller' => $data[0]['properties']['seller'],
+                    'ship_id' => $ship_id,
+                    'order_date' => $data[0]['order_date'],
+                    'ship_cost' => $data[0]['properties']['ship_cost'],
+                    'discount' => $data[0]['properties']['discount'],
+                    'tax_cost' => $data[0]['properties']['tax_total'],
+                    'total_duel' => $data[0]['properties']['ship_cost'] + $data[0]['properties']['discount'] + $data[0]['properties']['tax_total'],
+                    'amount' => $data[0]['properties']['amount'],
+                    'customer_id' => $customer_id,
+                    'created_at' => \Carbon\Carbon::now(),
+                    'updated_at' => \Carbon\Carbon::now()
+                ]);
+            } catch (\Exception $e) {
+                return response()->json($e->getMessage());
+            }
+            //create PO detail
+            foreach ($data[0]['detail']['product'] as $item) {
+                // get po_id for database
+                $po_id = DB::table('purchase_order_headers')->where('control_number', '=', $request->input('control_transaction'))->where('store_id', '=', $request->input('sender_id'))->first()->id;
+                //get pid
+                $product_code = "";
+                foreach($included as $product_item){
+                    if($product_item['type'] == $item['data']['type'] && $product_item['id'] == $item['data']['id']){
+                        $product_code = $product_item['attributes']['code'];
+                    }
+                }
+                $pid = DB::table('products')->where('product_code', $product_code)->where('store_id', $request->input('sender_id'))->first()->id;
+
+                //create PO detail
+                try {
+                    DB::table('purchase_order_details')->insert([
+                        'po_id' => $po_id,
+                        'pid' => $pid,
+                        'quantity' => $item['quantity'],
+                        'unit_price' => $item['unit_price'],
+                        'created_at' => \Carbon\Carbon::now(),
+                        'updated_at' => \Carbon\Carbon::now()
+                    ]);
+                } catch (\Exception $e) {
+                    return response()->json($e->getMessage());
+                }
+            }
+            return 1;
         }
     }
-    public function createPermission(Request $request){
-        $viewUsers = new Permission();
-        $viewUsers->name = $request->input('name');
-        $viewUsers->display_name = $request->input('display_name');
-        $viewUsers->description = $request->input('description');
-//        $viewUsers->display_name = $request->input('display_name');
-//        $viewUsers->setKeyName($request->input('name'));
-        $viewUsers->save();
-        return response()->json('created');
-    }
-    public function assignRole(Request $request){
-        $user = User::where('email','=',$request->input('email'))->first();
-        $role = Role::where('name','=',$request->input('role'))->first();
-        $user->attachRole($role->id);
-//        $user->roles()->attach($role->id);
-        return response()->json('assigned');
-    }
-    public function attachPermission(Request $request){
-        $role = Role::where('name', '=', $request->input('role_name'))->first();
-        $permission = Permission::where('name', '=', $request->input('permission_name'))->first();
-        $role->attachPermission($permission);
 
+    public function verifyPO(Request $request)
+    {
+        try {
+            if (!$user = JWTAuth::parseToken()->authenticate()) {
+                return response()->json(['Không tồn tại người dùng trong hệ thống'], 404);
+            }
+        } catch (TokenExpiredException $e) {
+            return response()->json(['token_expired'], $e->getStatusCode());
+        } catch (TokenInvalidException $e) {
+            return response()->json(['token_invalid'], $e->getStatusCode());
+        } catch (JWTException $e) {
+            return response()->json(['token_absent'], $e->getStatusCode());
+        }
+//        $receiver_id = 88888888;
+//        return response()->json($request->all);
 
-        return response()->json("created");
-    }
-    public function checkRoles(Request $request){
-        $user = User::where('email', '=', $request->input('email'))->first();
-        Log::info($user);
-        return response()->json([
-            "user" => $user,
-            "client" => $user->hasRole('client'),
-            "admin" => $user->hasRole('admin'),
-            "editUser" => $user->can('create-users'),
-            "listUsers" => $user->can('edit-users')
+        $v = Validator::make($request->all(), [
+            'sender_id' => 'required',
+            'receiver_id' => 'required',
+            'time_interchange' => 'required|date_format:"Y-m-d H:i:s"',
+            'data' => 'required|Array',
+            'included' => 'required|Array'
         ]);
-    }
-    public function allUsers(){
-        $users = User::all();
-        return $users;
+        if ($v->fails()) {
+            return  $v->errors();
+        }
+//            return response()->json(compact('user'));
+
+        // check permission
+        if (!$user->can('send_po')) {
+            return 'Permission denied';
+        }
+        // validate information
+        if ($request->input('sender_id') != $user->store_id || $request->input('receiver_id') != 88888888) {
+            return 'Wrong information';
+        }
+
+        // validate control_transaction
+        $check_exist = POheader::where('control_number', '=', $request->input('control_transaction'))->first();
+        if ($check_exist) {
+            return 'duplicate control_transaction';
+        }
+        $store_code = Store::findOrFail($request->input('sender_id'))->control_code;
+        $rule = "/^" . $store_code . "/";
+//        dd($rule);
+//        dd($request->input('control_transaction'));
+        $check_format_code = preg_match($rule, $request->input('control_transaction'));
+
+//        dd($check_format_code);
+        if ($check_format_code == 0) {
+            return 'Wrong format code';
+        }
+
+
+        return true;
+        //
+
+//
+
     }
 }

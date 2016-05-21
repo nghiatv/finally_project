@@ -7,12 +7,14 @@
         <!-- Sidebar user panel (optional) -->
         <div class="user-panel">
             <div class="pull-left image">
-                <img src="{{ '../adminLTE/dist/img/user2-160x160.jpg' }}" class="img-circle" alt="User Image">
+                <img src="{{ asset('../adminLTE/dist/img/user2-160x160.jpg') }}" class="img-circle" alt="User Image">
             </div>
             <div class="pull-left info">
-                <p>Alexander Pierce</p>
+                <p> @if(isset(Auth::guard()->user()->name))
+                        {{Auth::guard()->user()->name}}
+                    @endif</p>
                 <!-- Status -->
-                <a href="#"><i class="fa fa-circle text-success"></i> Online</a>
+                <a href="#"><i class="fa fa-circle text-success"></i> Admin</a>
             </div>
         </div>
 
@@ -21,7 +23,8 @@
             <div class="input-group">
                 <input type="text" name="q" class="form-control" placeholder="Search...">
               <span class="input-group-btn">
-                <button type="submit" name="search" id="search-btn" class="btn btn-flat"><i class="fa fa-search"></i></button>
+                <button type="submit" name="search" id="search-btn" class="btn btn-flat"><i class="fa fa-search"></i>
+                </button>
               </span>
             </div>
         </form>
@@ -29,17 +32,54 @@
 
         <!-- Sidebar Menu -->
         <ul class="sidebar-menu">
-            <li class="header">HEADER</li>
+            <li class="header">Danh mục</li>
             <!-- Optionally, you can add icons to the links -->
-            <li class="active"><a href="#"><i class="fa fa-link"></i> <span>Link</span></a></li>
-            <li><a href="#"><i class="fa fa-link"></i> <span>Another Link</span></a></li>
+
+            @role('admin')
             <li class="treeview">
-                <a href="#"><i class="fa fa-user"></i> <span>Người dùng</span> <i class="fa fa-angle-left pull-right"></i></a>
+                <a href="#"><i class="fa fa-user"></i> <span>Người dùng</span> <i
+                            class="fa fa-angle-left pull-right"></i></a>
                 <ul class="treeview-menu">
-                    <li><a href="#">Danh sách người dùng</a></li>
-                    <li><a href="{{ asset('admin/register') }}">Tạo mới người dùng</a></li>
+                    <li><a href="{{ asset('admin/user') }}">Danh sách người dùng</a></li>
+                    <li><a href="{{ asset('admin/user/create') }}">Tạo mới người dùng</a></li>
                 </ul>
             </li>
+            <li class="treeview">
+                <a href="#"><i class="fa fa-shopping-bag" aria-hidden="true"></i></i> <span>Cửa hàng</span> <i
+                            class="fa fa-angle-left pull-right"></i></a>
+                <ul class="treeview-menu">
+                    <li><a href="{{ asset('admin/store') }}">Danh sách của hàng</a></li>
+                    <li><a href="{{ asset('admin/store/create') }}">Tạo mới cửa hàng</a></li>
+                </ul>
+            </li>
+            <li class="treeview">
+                <a href="#"><i class="fa fa-wrench"></i> <span>Role</span> <i
+                            class="fa fa-angle-left pull-right"></i></a>
+                <ul class="treeview-menu">
+                    <li><a href="{{ asset('admin/role') }}">List Role</a></li>
+                    <li><a href="{{ asset('admin/role/create') }}">Create Role</a></li>
+                </ul>
+            </li>
+            <li class="treeview">
+                <a href="#"><i class="fa fa-hand-grab-o"></i> <span>Permission</span> <i
+                            class="fa fa-angle-left pull-right"></i></a>
+                <ul class="treeview-menu">
+                    <li><a href="{{ asset('admin/perm') }}">List Permission</a></li>
+                    <li><a href="{{ asset('admin/perm/create') }}">Create Permission</a></li>
+                </ul>
+            </li>
+            <li class="treeview">
+                <a href="{{ asset('admin/bill') }}"><i class="fa fa-file-text" aria-hidden="true"></i> <span>Hóa đơn</span> <i
+                            class="fa fa-angle-left pull-right"></i></a>
+
+            </li>
+            <li class="treeview"><a href="{{ asset('admin/product') }}"><i class="fa fa-file-text" aria-hidden="true"></i> <span>Mặt hàng</span> <i
+                            class="fa fa-angle-left pull-right"></i></a>
+            </li>
+            <li class="treeview"><a href="{{ asset('admin/mail') }}"><i class="fa fa-file-text" aria-hidden="true"></i> <span>Gửi mail</span> <i
+                            class="fa fa-angle-left pull-right"></i></a>
+            </li>
+            @endrole
         </ul><!-- /.sidebar-menu -->
     </section>
     <!-- /.sidebar -->

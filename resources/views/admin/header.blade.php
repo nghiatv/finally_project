@@ -4,9 +4,9 @@
     <!-- Logo -->
     <a href="{{ '/' }}" class="logo">
         <!-- mini logo for sidebar mini 50x50 pixels -->
-        <span class="logo-mini"><b>A</b>LT</span>
+        <span class="logo-mini"><b>H</b>QT</span>
         <!-- logo for regular state and mobile devices -->
-        <span class="logo-lg"><b>Admin</b>LTE</span>
+        <span class="logo-lg">Hệ quản trị</span>
     </a>
 
     <!-- Header Navbar -->
@@ -34,7 +34,8 @@
                                     <a href="#">
                                         <div class="pull-left">
                                             <!-- User Image -->
-                                            <img src="{{ '/adminLTE/dist/img/user2-160x160.jpg' }}" class="img-circle" alt="User Image">
+                                            <img src="{{ '/adminLTE/dist/img/user2-160x160.jpg' }}" class="img-circle"
+                                                 alt="User Image">
                                         </div>
                                         <!-- Message title and timestamp -->
                                         <h4>
@@ -95,7 +96,9 @@
                                         <!-- The progress bar -->
                                         <div class="progress xs">
                                             <!-- Change the css width attribute to simulate progress -->
-                                            <div class="progress-bar progress-bar-aqua" style="width: 20%" role="progressbar" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100">
+                                            <div class="progress-bar progress-bar-aqua" style="width: 20%"
+                                                 role="progressbar" aria-valuenow="20" aria-valuemin="0"
+                                                 aria-valuemax="100">
                                                 <span class="sr-only">20% Complete</span>
                                             </div>
                                         </div>
@@ -115,30 +118,36 @@
                         <!-- The user image in the navbar-->
                         <img src="{{ '/adminLTE/dist/img/user2-160x160.jpg' }}" class="user-image" alt="User Image">
                         <!-- hidden-xs hides the username on small devices so only the image appears. -->
-                        <span class="hidden-xs">Alexander Pierce</span>
+                        <span class="hidden-xs">
+                            @if(isset(Auth::guard()->user()->name))
+                                {{Auth::guard()->user()->name}}
+                            @endif
+                        </span>
                     </a>
                     <ul class="dropdown-menu">
                         <!-- The user image in the menu -->
                         <li class="user-header">
                             <img src="{{ '/adminLTE/dist/img/user2-160x160.jpg' }}" class="img-circle" alt="User Image">
                             <p>
-                                Alexander Pierce - Web Developer
-                                <small>Member since Nov. 2012</small>
+                                @if(isset(Auth::guard()->user()->name))
+                                    {{Auth::guard()->user()->name}}
+                                @endif
+                                <small>Admin</small>
                             </p>
                         </li>
                         <!-- Menu Body -->
-                        <li class="user-body">
-                            <div class="col-xs-4 text-center">
-                                <a href="#">Followers</a>
-                            </div>
-                            <div class="col-xs-4 text-center">
-                                <a href="#">Sales</a>
-                            </div>
-                            <div class="col-xs-4 text-center">
-                                <a href="#">Friends</a>
-                            </div>
-                        </li>
-                        <!-- Menu Footer-->
+                        {{--<li class="user-body">--}}
+                        {{--<div class="col-xs-4 text-center">--}}
+                        {{--<a href="#">Followers</a>--}}
+                        {{--</div>--}}
+                        {{--<div class="col-xs-4 text-center">--}}
+                        {{--<a href="#">Sales</a>--}}
+                        {{--</div>--}}
+                        {{--<div class="col-xs-4 text-center">--}}
+                        {{--<a href="#">Friends</a>--}}
+                        {{--</div>--}}
+                        {{--</li>--}}
+                                <!-- Menu Footer-->
                         <li class="user-footer">
                             <div class="pull-left">
                                 <a href="#" class="btn btn-default btn-flat">Profile</a>

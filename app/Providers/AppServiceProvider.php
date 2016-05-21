@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Providers;
-
+use App\Validators\RestValidator;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -14,6 +14,10 @@ class AppServiceProvider extends ServiceProvider
     public function boot()
     {
         //
+        \Validator::resolver(function($translator, $data, $rules, $messages)
+        {
+            return new RestValidator($translator, $data, $rules, $messages);
+        });
     }
 
     /**

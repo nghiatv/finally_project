@@ -13,20 +13,36 @@ scratch. This page gets rid of all links and provides the needed markup only.
     <!-- Bootstrap 3.3.5 -->
     <link rel="stylesheet" href="{{ '/adminLTE/bootstrap/css/bootstrap.min.css' }}">
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.2/css/font-awesome.min.css">
     <!-- Ionicons -->
     <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
-    <!-- Theme style -->
-    <link rel="stylesheet" href="{{ '/adminLTE/dist/css/AdminLTE.min.css' }}">
-    <!-- AdminLTE Skins. We have chosen the skin-blue for this starter
-          page. However, you can choose any other skin. Make sure you
-          apply the skin class to the body tag so the changes take effect.
-    -->
-    <link rel="stylesheet" href="{{ '/adminLTE/dist/css/skins/skin-blue.min.css' }}">
+
+    <!-- Morris chart -->
+    <link rel="stylesheet" href="{{ '/adminLTE/plugins/morris/morris.css' }}">
+
+    <!-- Date Picker -->
+    <link rel="stylesheet" href="{{ '/adminLTE/plugins/datepicker/datepicker3.css' }}">
+    <!-- Daterange picker -->
+    <link rel="stylesheet" href="{{ '/adminLTE/plugins/daterangepicker/daterangepicker-bs3.css' }}">
+    <!-- bootstrap wysihtml5 - text editor -->
+    <link rel="stylesheet" href="{{ '/adminLTE/plugins/bootstrap-wysihtml5/bootstrap3-wysihtml5.min.css' }}">
+
+
+    <link rel="stylesheet" href="{{ '/adminLTE/plugins/datatables/dataTables.bootstrap.css' }}">
+    <link rel="stylesheet" href="{{ '/adminLTE/plugins/iCheck/all.css' }}">
+
+
 
     <!-- iCheck -->
     <link rel="stylesheet" href="{{ '/adminLTE/plugins/iCheck/square/blue.css' }}">
     <link rel="stylesheet" href="{{ '/adminLTE/plugins/select2/select2.min.css' }}">
+
+    <link rel="stylesheet" href="{{ '/adminLTE/dist/css/skins/skin-blue.min.css' }}">
+    <link rel="stylesheet" href="{{ '/adminLTE/dist/css/skins/_all-skins.min.css' }}">
+
+    <link rel="stylesheet" href="{{ '/adminLTE/plugins/bootstrap-wysihtml5/bootstrap3-wysihtml5.min.css' }}">
+
+    <link rel="stylesheet" href="{{ '/style.css' }}">
 
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -34,27 +50,10 @@ scratch. This page gets rid of all links and provides the needed markup only.
     <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
     <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
+
+    <!-- Theme style -->
+    <link rel="stylesheet" href="{{ '/adminLTE/dist/css/AdminLTE.min.css' }}">
 </head>
-<!--
-BODY TAG OPTIONS:
-=================
-Apply one or more of the following classes to get the
-desired effect
-|---------------------------------------------------------|
-| SKINS         | skin-blue                               |
-|               | skin-black                              |
-|               | skin-purple                             |
-|               | skin-yellow                             |
-|               | skin-red                                |
-|               | skin-green                              |
-|---------------------------------------------------------|
-|LAYOUT OPTIONS | fixed                                   |
-|               | layout-boxed                            |
-|               | layout-top-nav                          |
-|               | sidebar-collapse                        |
-|               | sidebar-mini                            |
-|---------------------------------------------------------|
--->
 <body class="hold-transition skin-blue sidebar-mini">
 <div class="wrapper">
 
@@ -68,13 +67,10 @@ desired effect
         <!-- Content Header (Page header) -->
         <section class="content-header">
             <h1>
-                Page Header
-                <small>Optional description</small>
+               @yield('page-header')
+                <small>@yield('optional-description')</small>
             </h1>
-            <ol class="breadcrumb">
-                <li><a href="#"><i class="fa fa-dashboard"></i> Level</a></li>
-                <li class="active">Here</li>
-            </ol>
+                @yield('breadcrumb')
         </section>
 
         <!-- Main content -->
@@ -159,10 +155,30 @@ desired effect
 <script src="{{ '/adminLTE/plugins/jQuery/jQuery-2.1.4.min.js' }}"></script>
 <!-- Bootstrap 3.3.5 -->
 <script src="{{ '/adminLTE/bootstrap/js/bootstrap.min.js' }}"></script>
+
+<!-- Morris.js charts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>
+<script src="{{ '/adminLTE/plugins/morris/morris.min.js' }}"></script>
+
 <!-- AdminLTE App -->
 <script src="{{ '/adminLTE/dist/js/app.min.js' }}"></script>
 <script src="{{ '/adminLTE/plugins/iCheck/icheck.min.js' }}"></script>
 <script src="{{ '/adminLTE/plugins/select2/select2.full.min.js' }}"></script>
+<!-- DataTables -->
+<script src="{{ '/adminLTE/plugins/datatables/jquery.dataTables.min.js' }}"></script>
+<script src="{{ '/adminLTE/plugins/datatables/dataTables.bootstrap.min.js' }}"></script>
+<!-- SlimScroll -->
+<script src="{{ '/adminLTE/plugins/slimScroll/jquery.slimscroll.min.js' }}"></script>
+
+
+
+<!-- Fastclick -->
+<script src="{{ '/adminLTE/plugins/fastclick/fastclick.min.js' }}"></script>
+{{--Chartjs--}}
+<script src="{{ '/adminLTE/plugins/chartjs/Chart.min.js' }}"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.2/moment.min.js"></script>
+
 
 <script>
     $(function () {
@@ -175,6 +191,28 @@ desired effect
         $(".select2").select2();
 
     });
+    $(function () {
+        $("#example1").DataTable({
+            aLengthMenu: [
+                [25, 50, 100, 200, -1],
+                [25, 50, 100, 200, "All"]
+            ],
+            searching: false,
+            iDisplayLength: -1,
+            ordering: true,
+            order: [[0, 'desc']]
+        });
+        $('#example2').DataTable({
+            "paging": true,
+            "lengthChange": false,
+            "searching": true,
+            "ordering": true,
+            "info": true,
+            "autoWidth": false
+        });
+    });
 </script>
+
+@stack('scripts')
 </body>
 </html>

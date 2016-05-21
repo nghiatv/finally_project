@@ -15,6 +15,7 @@ class Kernel extends HttpKernel
      */
     protected $middleware = [
         \Illuminate\Foundation\Http\Middleware\CheckForMaintenanceMode::class,
+        \Barryvdh\Cors\HandleCors::class,
     ];
 
     /**
@@ -51,6 +52,8 @@ class Kernel extends HttpKernel
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'jwt.auth' => \Tymon\JWTAuth\Middleware\GetUserFromToken::class,
         'jwt.refresh' => \Tymon\JWTAuth\Middleware\RefreshToken::class,
+        'role' => \Zizaco\Entrust\Middleware\EntrustRole::class,
+        'permission' => \Zizaco\Entrust\Middleware\EntrustPermission::class,
         'ability' => \App\Http\Middleware\TokenEntrustAbility::class
 
     ];

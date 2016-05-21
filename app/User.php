@@ -13,14 +13,17 @@ class User extends Model implements AuthenticatableContract,
     AuthorizableContract,
     CanResetPasswordContract
 {
-    use Authenticatable, CanResetPassword, EntrustUserTrait;
+    use Authenticatable,Authorizable, CanResetPassword, EntrustUserTrait{
+        EntrustUserTrait ::can insteadof Authorizable; //add insteadof avoid php trait conflict resolution
+    }
+
     /**
      * The attributes that are mass assignable.
      *
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password',
+         'name','email', 'password','store_id'
     ];
 
     /**
@@ -31,4 +34,5 @@ class User extends Model implements AuthenticatableContract,
     protected $hidden = [
         'password', 'remember_token',
     ];
+
 }
